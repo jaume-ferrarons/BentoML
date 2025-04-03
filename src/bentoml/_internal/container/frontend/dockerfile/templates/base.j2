@@ -64,8 +64,7 @@ WORKDIR $BENTO_PATH
 {% block SETUP_BENTO_COMPONENTS %}
 
 RUN apt update
-RUN apt install -y curl
-RUN curl -LsSf https://astral.sh/uv/install.sh | sh
+RUN apt install -y python3-pip
 RUN command -v uv >/dev/null || pip install uv
 RUN UV_PYTHON_INSTALL_DIR=/app/python/ uv venv {% if __options__python_version %}-p {{ __options__python_version }}{% endif %} /app/.venv && \
     chown -R {{ bento__user }}:{{ bento__user }} /app/.venv
