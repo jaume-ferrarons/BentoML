@@ -64,8 +64,8 @@ WORKDIR $BENTO_PATH
 {% block SETUP_BENTO_COMPONENTS %}
 
 RUN curl -LsSf https://astral.sh/uv/install.sh | sh
-RUN . $HOME/.local/bin/env
-RUN command -v uv >/dev/null
+ENV PATH="/root/.local/bin/:$PATH"
+RUN echo $(uv --version)
 RUN UV_PYTHON_INSTALL_DIR=/app/python/ uv venv {% if __options__python_version %}-p {{ __options__python_version }}{% endif %} /app/.venv && \
     chown -R {{ bento__user }}:{{ bento__user }} /app/.venv
 ENV VIRTUAL_ENV=/app/.venv
