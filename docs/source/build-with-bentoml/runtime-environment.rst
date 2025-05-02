@@ -20,13 +20,13 @@ Essentially, the runtime environment contains a set of Bento build options, such
 Basic usage
 -----------
 
-Create a ``PythonImage`` instance with the desired configurations and attach it to your Service:
+Create a ``Image`` instance with the desired configurations and attach it to your Service:
 
 .. code-block:: python
 
     import bentoml
 
-    my_image = bentoml.images.PythonImage(python_version='3.11') \
+    my_image = bentoml.images.Image(python_version='3.11') \
         .python_packages("torch", "transformers")
 
     @bentoml.service(image=my_image)
@@ -45,7 +45,7 @@ This example specifies:
 Constructor parameters
 ----------------------
 
-You can initialize a ``PythonImage`` instance with the following parameters:
+You can initialize a ``Image`` instance with the following parameters:
 
 - ``python_version``: The Python version to use. If not specified, it defaults to the Python version in your current build environment.
 - ``distro``: The Linux distribution for the base image. It defaults to ``debian``.
@@ -59,15 +59,15 @@ Example usage:
     import bentoml
 
     # Specify Python version and distro
-    image_two = bentoml.images.PythonImage(python_version='3.11', distro='alpine')
+    image_two = bentoml.images.Image(python_version='3.11', distro='alpine')
 
     # Specify a custom base image and disable version locking
-    image_one = bentoml.images.PythonImage(base_image="python:3.11-slim-buster", lock_python_packages=False)
+    image_one = bentoml.images.Image(base_image="python:3.11-slim-buster", lock_python_packages=False)
 
 Configuration methods
 ---------------------
 
-The ``PythonImage`` class provides various methods to customize the build process.
+The ``Image`` class provides various methods to customize the build process.
 
 ``python_packages()``
 ^^^^^^^^^^^^^^^^^^^^^^
@@ -78,7 +78,7 @@ Install specific Python dependencies by listing them directly. It supports versi
 
     import bentoml
 
-    image = bentoml.images.PythonImage(python_version='3.11') \
+    image = bentoml.images.Image(python_version='3.11') \
         .python_packages(
             "numpy>=1.20.0",
             "pandas",
@@ -96,7 +96,7 @@ To include a package from a GitHub repository, use `the pip requirements file fo
 
     import bentoml
 
-    image = bentoml.images.PythonImage(python_version='3.11') \
+    image = bentoml.images.Image(python_version='3.11') \
         .python_packages(
             "git+https://github.com/username/repository.git@branch_name",
             "git+https://github.com/username/repository.git@v1.0.0",
@@ -110,7 +110,7 @@ If your project depends on a private GitHub repository, you can include the Pyth
 
     import bentoml
 
-    image = bentoml.images.PythonImage(python_version='3.11') \
+    image = bentoml.images.Image(python_version='3.11') \
         .python_packages("git+ssh://git@github.com/username/repository.git@branch_name")
 
 To configure PyPI indexes and other pip options (e.g. custom package sources and private repositories):
@@ -120,7 +120,7 @@ To configure PyPI indexes and other pip options (e.g. custom package sources and
     import bentoml
 
     # Using custom PyPI index
-    image = bentoml.images.PythonImage(python_version='3.11') \
+    image = bentoml.images.Image(python_version='3.11') \
         .python_packages(
             "--index-url https://download.pytorch.org/whl/cpu",
             "torch",
@@ -129,7 +129,7 @@ To configure PyPI indexes and other pip options (e.g. custom package sources and
         )
 
     # Configuring multiple PyPI options, including a private repository
-    image = bentoml.images.PythonImage(python_version='3.11') \
+    image = bentoml.images.Image(python_version='3.11') \
         .python_packages(
             "--index-url https://pypi.org/simple", # Default PyPI index
             "--extra-index-url https://my.private.pypi/simple", # Additional private repository
@@ -144,7 +144,7 @@ If your private package requires authentication:
     import bentoml
 
     # Securely configure authentication for a private PyPI repository
-    image = bentoml.images.PythonImage(python_version='3.11') \
+    image = bentoml.images.Image(python_version='3.11') \
         .python_packages(
             # Use environment variables for security
             "--extra-index-url https://${USERNAME}:${PASSWORD}@my.private.pypi/simple",
@@ -170,7 +170,7 @@ You can also install Python dependencies from a ``requirements.txt`` file instea
 
     import bentoml
 
-    image = bentoml.images.PythonImage(python_version='3.11') \
+    image = bentoml.images.Image(python_version='3.11') \
         .requirements_file("./path/to/requirements.txt")
 
 ``system_packages()``
@@ -182,7 +182,7 @@ Install system-level dependencies in the runtime environment.
 
     import bentoml
 
-    image = bentoml.images.PythonImage(python_version='3.11') \
+    image = bentoml.images.Image(python_version='3.11') \
         .system_packages("curl", "git")
 
 ``run()``
@@ -196,7 +196,7 @@ Here is an example:
 
     import bentoml
 
-    image = bentoml.images.PythonImage(python_version='3.11') \
+    image = bentoml.images.Image(python_version='3.11') \
         .run('echo "Starting build process..."') \
         .system_packages("curl", "git") \
         .run('echo "System packages installed"') \
@@ -204,6 +204,23 @@ Here is an example:
         .run('echo "Python packages installed"')
 
 ``run()`` is context-sensitive. For example, commands placed before ``.python_packages()`` are executed before installing Python dependencies, while those placed after are executed after installation. This allows you to perform certain tasks in the correct order.
+
+Exclude files
+-------------
+
+You can define a ``.bentoignore`` file to exclude specific files when building your Bento. It uses standard pathspec patterns and the specified paths should be relative to the ``build_ctx`` directory (typically, this is the same directory where your ``service.py`` resides). This helps reduce the size of your Bento and keeps your runtime clean and efficient.
+
+Here is an example:
+
+.. code-block:: bash
+   :caption: .bentoignore
+
+   __pycache__/
+   *.py[cod]
+   *$py.class
+   .ipynb_checkpoints/
+   training_data/
+   venv/
 
 Next step
 ---------

@@ -24,6 +24,7 @@ from ..configuration import clean_bentoml_version
 from ..configuration import get_bentoml_requirement
 from ..configuration import get_debug_mode
 from ..configuration import get_quiet_mode
+from ..configuration.containers import BentoMLContainer
 from ..container import generate_containerfile
 from ..container.frontend.dockerfile import ALLOWED_CUDA_VERSION_ARGS
 from ..container.frontend.dockerfile import CONTAINER_SUPPORTED_DISTROS
@@ -885,8 +886,10 @@ class BentoBuildConfig:
                         f"{self.docker.cuda_version} is not supported for {self.docker.distro}. Supported cuda versions are: {', '.join(spec.supported_cuda_versions)}."
                     )
 
-            if self.args:
-                set_arguments(**self.args)
+        if self.args:
+            # Merge command line args with the ones in the config file
+            # and the command line args take precedence
+            set_arguments(**(self.args | BentoMLContainer.bento_arguments.get()))
 
     def with_defaults(self) -> FilledBentoBuildConfig:
         """
@@ -908,6 +911,7 @@ class BentoBuildConfig:
             conda=self.conda.with_defaults(),
             models=self.models,
             envs=self.envs,
+            args=self.args,
         )
 
     @property
